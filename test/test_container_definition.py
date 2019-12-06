@@ -17,7 +17,7 @@ class TestContainerDefinition(unittest.TestCase):
 
     def setUp(self):
         self.workdir = tempfile.mkdtemp()
-        self.module_path = f'{os.getcwd()}/test/infra'
+        self.module_path = os.getcwd()
 
         check_call(['terraform', 'init', self.module_path], cwd=self.workdir)
         check_call(['terraform', 'get', self.module_path], cwd=self.workdir)
@@ -304,68 +304,3 @@ class TestContainerDefinition(unittest.TestCase):
         assert definition['cpu'] == 1024
         assert definition['memory'] == 1024
         assert definition['command'] is None
-
-
-class TestEncodeSecrets(unittest.TestCase):
-
-    def test_encode_secrets(self):
-        secrets_value = json.dumps({'Val1': 'some-secret-arn'})
-        secrets = {'secrets': secrets_value}
-        j = json.dumps(secrets)
-        output = check_output(
-            ['python', 'encode_secrets.py'],
-            input=(str.encode(j))
-        )
-        expected = [{'name': 'Val1', 'valueFrom': 'some-secret-arn'}]
-        actual = json.loads(output.decode())
-        secrets = json.loads(actual['secrets'])
-        assert secrets == expected
-
-    def test_encode_common_secrets(self):
-        secrets_value = json.dumps({'Val1': 'some-secret-arn'})
-        secrets = {'common_secrets': secrets_value}
-        j = json.dumps(secrets)
-        output = check_output(
-            ['python', 'encode_secrets.py'],
-            input=(str.encode(j))
-        )
-        expected = [{'name': 'Val1', 'valueFrom': 'some-secret-arn'}]
-        actual = json.loads(output.decode())
-        secrets = json.loads(actual['secrets'])
-        assert secrets == expected
-
-    def test_encode_all_secrets(self):
-        secrets_value = json.dumps({'Val1': 'some-secret-arn'})
-        common_secrets_value = json.dumps({'Val2': 'some-secret-arn'})
-        secrets = {
-            'secrets': secrets_value,
-            'common_secrets': common_secrets_value
-        }
-        j = json.dumps(secrets)
-        output = check_output(
-            ['python', 'encode_secrets.py'],
-            input=(str.encode(j))
-        )
-        expected = [
-            {'name': 'Val1', 'valueFrom': 'some-secret-arn'},
-            {'name': 'Val2', 'valueFrom': 'some-secret-arn'}
-        ]
-        actual = json.loads(output.decode())
-        secrets = json.loads(actual['secrets'])
-        assert secrets == expected
-
-    def test_no_secrets(self):
-        secrets = {
-            'secrets': json.dumps({}),
-            'common_secrets': json.dumps({})
-        }
-        j = json.dumps(secrets)
-        output = check_output(
-            ['python', 'encode_secrets.py'],
-            input=(str.encode(j))
-        )
-        expected = [
-        ]
-        actual = json.loads(output.decode())
-        secrets = json.loads(actual['secrets'])
-        assert secrets == expected

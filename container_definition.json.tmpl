@@ -1,4 +1,4 @@
-  {
+{
     "name": "${container_name}",
     "essential": true,
     "image": "${image}",
@@ -7,7 +7,6 @@
     "memory": ${mem},
     "command": ${command},
     "environment": ${container_env},
-    "secrets": ${secrets},
     "dockerLabels": ${labels},
     "mountPoints": [
       ${mountpoint_sourceVolume == "none" ? "" :
